@@ -9,8 +9,9 @@ from .size import IntWarper
 
 
 @tensorrt_converter('torch.nn.functional.interpolate')
-def convert_interpolate(ctx):
 
+def convert_interpolate(ctx):
+    print("interpolate_converter")
     input = ctx.method_args[0]
 
     try:
@@ -79,12 +80,13 @@ def convert_interpolate(ctx):
     if version.parse(trt.__version__) >= version.parse('8'):
         layer.coordinate_transformation = \
             trt.ResizeCoordinateTransformation.ALIGN_CORNERS
+        layer.nearest_rounding = trt.ResizeRoundMode.HALF_DOWN
     else:
         layer.align_corners = align_corners
 
     if mode == 'nearest':
         layer.resize_mode = trt.ResizeMode.NEAREST
-    elif mode == 'linear':
+    elif mode == 'linear' or 'bilinear':
         layer.resize_mode = trt.ResizeMode.LINEAR
     else:
         layer.resize_mode = trt.ResizeMode.LINEAR
